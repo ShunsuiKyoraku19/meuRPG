@@ -17,6 +17,7 @@ body {
     min-height: 100vh;
     background-image: url('https://i.imgur.com/fZ8y0jx.png');
     background-size: cover;
+    background-position: center;
 }
 
 .container {
@@ -26,6 +27,8 @@ body {
     border-radius: 15px;
     border: 2px solid #d4af37;
     box-shadow: 0px 0px 25px rgba(0, 0, 0, 0.8);
+    position: relative;
+    overflow: hidden;
 }
 
 h1, h2 {
@@ -52,7 +55,7 @@ button:hover {
 
 #log {
     margin-top: 20px;
-    height: 220px;
+    height: 200px;
     overflow-y: auto;
     border: 2px solid #b8860b;
     padding: 10px;
@@ -84,21 +87,45 @@ button:hover {
     border-radius: 10px;
     padding: 10px;
     border: 1px solid #b8860b;
+    display: flex;
+    justify-content: space-around;
 }
 
-.personagem, .inimigo { margin-bottom: 20px; }
+.personagem, .inimigo { text-align: center; }
+
+.personagem img, .inimigo img {
+    width: 140px;
+    height: 140px;
+    border-radius: 10px;
+    border: 2px solid #d4af37;
+    object-fit: cover;
+    background: #000;
+}
 
 .log-ataque-jogador { color: #00ff7f; }
 .log-ataque-inimigo { color: #ffa500; }
 .log-cura { color: #00ffff; }
 .log-status { color: #ffff66; }
 
-#menu-ataques button { width: 48%; }
+#menu-principal, #menu-ataques {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    background: rgba(20, 20, 20, 0.85);
+    border-top: 2px solid #d4af37;
+    padding: 8px 0;
+}
+
+#menu-ataques button { width: 45%; }
 
 #batalha-finalizada {
     display: none;
     text-align: center;
-    margin-top: 15px;
+    margin-top: 10px;
 }
 #batalha-finalizada button {
     background: linear-gradient(180deg, #006400, #004d00);
@@ -107,50 +134,49 @@ button:hover {
 #batalha-finalizada button:hover {
     background: linear-gradient(180deg, #008000, #005f00);
 }
-
 </style>
 </head>
 <body>
 <div class="container">
     <h1>⚔️ RPG JS - Batalhas Épicas ⚔️</h1>
 
-    <div id="menu-principal">
-        <button onclick="criarPersonagem()">Criar Personagem</button>
-        <button onclick="selecionarPersonagem()">Selecionar Personagem</button>
-        <button onclick="verStatus()">Ver Status</button>
-        <button onclick="procurarInimigo()">Procurar Inimigo</button>
-        <button onclick="descansar()">Descansar</button>
-        <button onclick="distribuirPontos()">Distribuir Pontos</button>
-        <button onclick="salvarJogo()">Salvar Jogo</button>
-        <button onclick="carregarJogo()">Carregar Jogo</button>
-    </div>
-
     <div id="status-container">
         <div class="personagem">
-            <h2>👤 Personagem Atual</h2>
+            <h2>👤 Personagem</h2>
+            <img id="img-personagem" src="https://i.imgur.com/1m9Z2NL.png" alt="Personagem">
             <div id="personagem-status"></div>
         </div>
         <div class="inimigo">
             <h2>👹 Inimigo</h2>
+            <img id="img-inimigo" src="https://i.imgur.com/fug4a1I.png" alt="Inimigo">
             <div id="inimigo-status"></div>
         </div>
     </div>
 
+    <div id="log"></div>
+
+    <div id="menu-principal">
+        <button onclick="criarPersonagem()">Criar</button>
+        <button onclick="selecionarPersonagem()">Selecionar</button>
+        <button onclick="verStatus()">Status</button>
+        <button onclick="procurarInimigo()">Lutar</button>
+        <button onclick="descansar()">Descansar</button>
+        <button onclick="distribuirPontos()">Pontos</button>
+        <button onclick="salvarJogo()">Salvar</button>
+        <button onclick="baixarSave()">Baixar Save</button>
+    </div>
+
     <div id="menu-ataques" style="display:none;">
-        <h2>🗡️ Escolha seu ataque</h2>
         <div id="ataques"></div>
         <button onclick="voltarMenu()">⬅️ Voltar</button>
         <div id="batalha-finalizada">
             <h3>🏆 Batalha Finalizada!</h3>
-            <button onclick="terminarBatalha()">Finalizar Batalha</button>
+            <button onclick="terminarBatalha()">Finalizar</button>
         </div>
     </div>
-
-    <div id="log"></div>
 </div>
 
 <script>
-// ==== CLASSES ====
 class Personagem {
     constructor(nome, classe) {
         this.nome = nome;
@@ -161,100 +187,103 @@ class Personagem {
         this.escudoAtivo = false;
 
         switch(classe) {
-            case "Guerreiro": this.vidaMax = 120; this.manaMax = 30; this.forca=15; this.agilidade=10; this.inteligencia=5; this.defesa=30; break;
-            case "Mago": this.vidaMax=80; this.manaMax=100; this.forca=5; this.agilidade=8; this.inteligencia=20; this.defesa=15; break;
-            case "Paladino": this.vidaMax=150; this.manaMax=50; this.forca=12; this.agilidade=8; this.inteligencia=10; this.defesa=35; break;
-            case "Assassino": this.vidaMax=90; this.manaMax=40; this.forca=10; this.agilidade=20; this.inteligencia=8; this.defesa=20; break;
-            case "Tank": this.vidaMax=200; this.manaMax=20; this.forca=10; this.agilidade=5; this.inteligencia=5; this.defesa=45; break;
+            case "Guerreiro": this.vidaMax=120; this.manaMax=30; this.forca=15; this.agilidade=10; this.inteligencia=5; this.defesa=30; this.imagem="https://i.imgur.com/rSxScA5.png"; break;
+            case "Mago": this.vidaMax=80; this.manaMax=100; this.forca=5; this.agilidade=8; this.inteligencia=20; this.defesa=15; this.imagem="https://i.imgur.com/lPmnkcg.png"; break;
+            case "Paladino": this.vidaMax=150; this.manaMax=50; this.forca=12; this.agilidade=8; this.inteligencia=10; this.defesa=35; this.imagem="https://i.imgur.com/mKSWZXK.png"; break;
+            case "Assassino": this.vidaMax=90; this.manaMax=40; this.forca=10; this.agilidade=20; this.inteligencia=8; this.defesa=20; this.imagem="https://i.imgur.com/EvcI6P3.png"; break;
+            case "Tank": this.vidaMax=200; this.manaMax=20; this.forca=10; this.agilidade=5; this.inteligencia=5; this.defesa=45; this.imagem="https://i.imgur.com/9YtY9FJ.png"; break;
         }
-
         this.vida = this.vidaMax;
         this.mana = this.manaMax;
     }
-
-    ataqueBasico() { return this.forca*2; }
-    expParaProximoNivel() { return 100 * this.nivel * this.nivel; }
-    levelUp() { 
-        this.nivel++; 
-        this.pontosHabilidade+=5; 
-        log(`✨ Parabéns! ${this.nome} subiu para nível ${this.nivel}! +5 pontos de habilidade.`, "log-status");
+    ataqueBasico(){ return this.forca*2; }
+    expParaProximoNivel(){ return 100*this.nivel*this.nivel; }
+    levelUp(){
+        this.nivel++; this.pontosHabilidade+=5;
+        log(`✨ ${this.nome} subiu para o nível ${this.nivel}!`, "log-status");
+        autoSave();
     }
 }
 
 class Inimigo {
-    constructor(nivel) {
-        const nomes = ["Goblin","Orc","Troll","Esqueleto","Slime"];
-        this.nome = nomes[Math.floor(Math.random()*nomes.length)];
-        this.nivel = nivel;
-        this.vidaMax = 50 + nivel*10;
-        this.vida = this.vidaMax;
-        this.ataque = 10 + nivel*2;
-        this.defesa = 5 + nivel*2;
-        this.stunned = false;
+    constructor(nivel){
+        const nomes=["Goblin","Orc","Troll","Esqueleto","Slime"];
+        const imagens=[
+            "https://i.imgur.com/NW4m3mT.png",
+            "https://i.imgur.com/w8Ktwqv.png",
+            "https://i.imgur.com/Wo3x6Xy.png",
+            "https://i.imgur.com/8PjYdOE.png",
+            "https://i.imgur.com/AlPMN3E.png"
+        ];
+        const idx=Math.floor(Math.random()*nomes.length);
+        this.nome=nomes[idx];
+        this.imagem=imagens[idx];
+        this.nivel=nivel;
+        this.vidaMax=50+nivel*10;
+        this.vida=this.vidaMax;
+        this.ataque=10+nivel*2;
+        this.defesa=5+nivel*2;
     }
 }
 
-// ==== LOG ====
-function log(msg, classe="") {
-    const logDiv = document.getElementById("log"); 
-    logDiv.innerHTML += `<div class="${classe}">> ${msg}</div>`; 
-    logDiv.scrollTop = logDiv.scrollHeight; 
+let personagens=[], personagemAtual=null, inimigoAtual=null;
+
+function log(msg,classe=""){
+    const logDiv=document.getElementById("log");
+    logDiv.innerHTML+=`<div class="${classe}">> ${msg}</div>`;
+    logDiv.scrollTop=logDiv.scrollHeight;
 }
 
-// ==== VARIÁVEIS ====
-let personagens = [];
-let personagemAtual = null;
-let inimigoAtual = null;
-
-// ==== STATUS ====
 function atualizarStatus(){
     if(personagemAtual){
-        document.getElementById("personagem-status").innerHTML = `
-            <b>${personagemAtual.nome} (Lv ${personagemAtual.nivel})</b><br>
+        document.getElementById("personagem-status").innerHTML=
+            `<b>${personagemAtual.nome} (Lv ${personagemAtual.nivel})</b><br>
             <div class="barra"><div class="barra-preenchida vida" style="width:${(personagemAtual.vida/personagemAtual.vidaMax)*100}%"></div></div>
             <div class="barra"><div class="barra-preenchida mana" style="width:${(personagemAtual.mana/personagemAtual.manaMax)*100}%"></div></div>
-            <b>Pontos:</b> ${personagemAtual.pontosHabilidade}
-        `;
+            <b>Pontos:</b> ${personagemAtual.pontosHabilidade}`;
+        document.getElementById("img-personagem").src=personagemAtual.imagem;
     }
     if(inimigoAtual){
-        document.getElementById("inimigo-status").innerHTML = `
-            <b>${inimigoAtual.nome} (Lv ${inimigoAtual.nivel})</b><br>
-            <div class="barra"><div class="barra-preenchida vida" style="width:${(inimigoAtual.vida/inimigoAtual.vidaMax)*100}%"></div></div>
-        `;
-    } else { document.getElementById("inimigo-status").innerHTML=""; }
+        document.getElementById("inimigo-status").innerHTML=
+            `<b>${inimigoAtual.nome} (Lv ${inimigoAtual.nivel})</b><br>
+            <div class="barra"><div class="barra-preenchida vida" style="width:${(inimigoAtual.vida/inimigoAtual.vidaMax)*100}%"></div></div>`;
+        document.getElementById("img-inimigo").src=inimigoAtual.imagem;
+    } else {
+        document.getElementById("inimigo-status").innerHTML="";
+        document.getElementById("img-inimigo").src="https://i.imgur.com/fug4a1I.png";
+    }
 }
 
-// ==== MENU ====
 function criarPersonagem(){
-    const nome = prompt("Digite o nome do personagem:");
-    const classes = ["Guerreiro","Mago","Paladino","Assassino","Tank"];
-    let escolha = prompt("Escolha a classe: 1-Guerreiro 2-Mago 3-Paladino 4-Assassino 5-Tank");
-    const classe = classes[parseInt(escolha)-1];
+    const nome=prompt("Digite o nome do personagem:");
+    const classes=["Guerreiro","Mago","Paladino","Assassino","Tank"];
+    const escolha=prompt("Escolha a classe: 1-Guerreiro 2-Mago 3-Paladino 4-Assassino 5-Tank");
+    const classe=classes[parseInt(escolha)-1];
     if(!classe) return;
-    const p = new Personagem(nome,classe);
+    const p=new Personagem(nome,classe);
     personagens.push(p);
-    personagemAtual = p;
-    log(`🧙 Personagem ${nome} (${classe}) criado!`, "log-status");
+    personagemAtual=p;
+    log(`🧙 ${nome} (${classe}) criado!`,"log-status");
     atualizarStatus();
+    autoSave();
 }
 
 function selecionarPersonagem(){
-    if(personagens.length===0){ log("Nenhum personagem disponível.", "log-status"); return; }
-    let lista = personagens.map((p,i)=>`${i+1}: ${p.nome} (${p.classe}) Lv ${p.nivel}`).join("\n");
-    let escolha = prompt("Escolha o personagem:\n"+lista);
-    personagemAtual = personagens[parseInt(escolha)-1];
-    log(`🎯 Personagem ${personagemAtual.nome} selecionado!`, "log-status");
+    if(personagens.length===0){ log("Nenhum personagem disponível."); return; }
+    const lista=personagens.map((p,i)=>`${i+1}: ${p.nome} (${p.classe}) Lv ${p.nivel}`).join("\n");
+    const escolha=prompt("Escolha o personagem:\n"+lista);
+    personagemAtual=personagens[parseInt(escolha)-1];
+    log(`🎯 ${personagemAtual.nome} selecionado!`,"log-status");
     atualizarStatus();
 }
 
 function verStatus(){
-    if(!personagemAtual){ log("Nenhum personagem selecionado.", "log-status"); return; }
+    if(!personagemAtual){ log("Nenhum personagem selecionado."); return; }
     alert(`
-Nome: ${personagemAtual.nome}
-Classe: ${personagemAtual.classe}
+${personagemAtual.nome} (${personagemAtual.classe})
 Nível: ${personagemAtual.nivel}
-Vida: ${personagemAtual.vida}/${personagemAtual.vidaMax}
-Mana: ${personagemAtual.mana}/${personagemAtual.manaMax}
+HP: ${personagemAtual.vida}/${personagemAtual.vidaMax}
+MP: ${personagemAtual.mana}/${personagemAtual.manaMax}
 Força: ${personagemAtual.forca}
 Agilidade: ${personagemAtual.agilidade}
 Inteligência: ${personagemAtual.inteligencia}
@@ -263,151 +292,141 @@ XP: ${personagemAtual.experiencia}/${personagemAtual.expParaProximoNivel()}
 Pontos: ${personagemAtual.pontosHabilidade}`);
 }
 
-function descansar(){ 
-    if(!personagemAtual){ log("Nenhum personagem selecionado.", "log-status"); return; } 
-    personagemAtual.vida=personagemAtual.vidaMax; 
-    personagemAtual.mana=personagemAtual.manaMax; 
-    log(`💤 ${personagemAtual.nome} descansou e recuperou HP e MP.`, "log-cura"); 
-    atualizarStatus(); 
+function descansar(){
+    if(!personagemAtual){ log("Nenhum personagem."); return; }
+    personagemAtual.vida=personagemAtual.vidaMax;
+    personagemAtual.mana=personagemAtual.manaMax;
+    log(`💤 ${personagemAtual.nome} descansou. HP/MP restaurados.`,"log-cura");
+    atualizarStatus();
+    autoSave();
 }
 
-// ==== DISTRIBUIR PONTOS ====
 function distribuirPontos(){
-    if(!personagemAtual){ log("Nenhum personagem selecionado.", "log-status"); return; }
+    if(!personagemAtual){ log("Nenhum personagem."); return; }
     while(personagemAtual.pontosHabilidade>0){
-        let escolha = prompt(`Pontos disponíveis: ${personagemAtual.pontosHabilidade}\n1-Vida Max\n2-Mana Max\n3-Força\n4-Agilidade\n5-Inteligência\n6-Defesa\nEscolha:`);
-        switch(escolha){
-            case "1": personagemAtual.vidaMax += 20; personagemAtual.vida = personagemAtual.vidaMax; break;
-            case "2": personagemAtual.manaMax += 10; personagemAtual.mana = personagemAtual.manaMax; break;
-            case "3": personagemAtual.forca += 2; break;
-            case "4": personagemAtual.agilidade +=2; break;
-            case "5": personagemAtual.inteligencia +=2; break;
-            case "6": personagemAtual.defesa +=2; break;
-            default: log("Opção inválida", "log-status"); continue;
+        const e=prompt(`Pontos: ${personagemAtual.pontosHabilidade}\n1-Vida\n2-Mana\n3-Força\n4-Agilidade\n5-Inteligência\n6-Defesa`);
+        switch(e){
+            case"1":personagemAtual.vidaMax+=20;break;
+            case"2":personagemAtual.manaMax+=10;break;
+            case"3":personagemAtual.forca+=2;break;
+            case"4":personagemAtual.agilidade+=2;break;
+            case"5":personagemAtual.inteligencia+=2;break;
+            case"6":personagemAtual.defesa+=2;break;
+            default:log("Inválido");continue;
         }
         personagemAtual.pontosHabilidade--;
     }
     atualizarStatus();
+    autoSave();
 }
 
-// ==== COMBATE ====
 function procurarInimigo(){
-    if(!personagemAtual){ log("Nenhum personagem selecionado.", "log-status"); return; }
-    inimigoAtual = new Inimigo(personagemAtual.nivel);
-    log(`⚠️ Você encontrou um ${inimigoAtual.nome} nível ${inimigoAtual.nivel}!`, "log-status");
+    if(!personagemAtual){ log("Nenhum personagem."); return; }
+    inimigoAtual=new Inimigo(personagemAtual.nivel);
+    log(`⚠️ Você encontrou um ${inimigoAtual.nome}!`,"log-status");
     menuAtaques();
+    atualizarStatus();
 }
 
 function menuAtaques(){
     document.getElementById("menu-principal").style.display="none";
-    document.getElementById("menu-ataques").style.display="block";
+    document.getElementById("menu-ataques").style.display="flex";
     document.getElementById("batalha-finalizada").style.display="none";
-    const ataquesDiv=document.getElementById("ataques");
-    ataquesDiv.innerHTML="";
-
-    let ataques = [{nome:"Ataque Básico",mana:0,dano:personagemAtual.ataqueBasico()}];
-
+    const aDiv=document.getElementById("ataques");
+    aDiv.innerHTML="";
+    const ataques=[{nome:"Ataque Básico",mana:0,dano:personagemAtual.ataqueBasico()}];
     switch(personagemAtual.classe){
-        case "Guerreiro": ataques.push({nome:"Golpe Circular",mana:30,dano:personagemAtual.ataqueBasico()*3}); ataques.push({nome:"Investida",mana:20,dano:personagemAtual.ataqueBasico()*2}); break;
-        case "Mago": ataques.push({nome:"Bola de Fogo",mana:20,dano:personagemAtual.inteligencia*4}); ataques.push({nome:"Raio Congelante",mana:25,dano:personagemAtual.inteligencia*5}); break;
-        case "Paladino": ataques.push({nome:"Cura Divina",mana:30,dano:0}); ataques.push({nome:"Ataque Giratório",mana:20,dano:personagemAtual.ataqueBasico()*2}); break;
-        case "Assassino": ataques.push({nome:"Ataque Furtivo",mana:25,dano:personagemAtual.agilidade*5}); ataques.push({nome:"Estocada Rápida",mana:15,dano:personagemAtual.agilidade*2.5}); break;
-        case "Tank": ataques.push({nome:"Escudo Protetor",mana:20,dano:0}); ataques.push({nome:"Golpe Pesado",mana:10,dano:personagemAtual.ataqueBasico()*1.5}); break;
+        case"Guerreiro":ataques.push({nome:"Golpe Circular",mana:30,dano:personagemAtual.ataqueBasico()*3});break;
+        case"Mago":ataques.push({nome:"Bola de Fogo",mana:20,dano:personagemAtual.inteligencia*4});break;
+        case"Paladino":ataques.push({nome:"Cura Divina",mana:30,dano:0});break;
+        case"Assassino":ataques.push({nome:"Ataque Furtivo",mana:25,dano:personagemAtual.agilidade*5});break;
+        case"Tank":ataques.push({nome:"Escudo Protetor",mana:20,dano:0});break;
     }
-
     ataques.forEach(a=>{
-        const btn=document.createElement("button");
-        btn.textContent=`${a.nome} (Mana: ${a.mana})`;
-        btn.onclick=()=>realizarAtaque(a);
-        ataquesDiv.appendChild(btn);
+        const b=document.createElement("button");
+        b.textContent=`${a.nome} (MP:${a.mana})`;
+        b.onclick=()=>realizarAtaque(a);
+        aDiv.appendChild(b);
     });
 }
 
 function realizarAtaque(ataque){
-    if(personagemAtual.mana < ataque.mana){ log("Mana insuficiente!", "log-status"); return; }
-    personagemAtual.mana -= ataque.mana;
-
-    if(ataque.nome==="Cura Divina"){ 
-        personagemAtual.vida+=50; 
-        if(personagemAtual.vida>personagemAtual.vidaMax) personagemAtual.vida=personagemAtual.vidaMax; 
-        log(`${personagemAtual.nome} conjurou Cura Divina.`, "log-cura"); 
+    if(personagemAtual.mana<ataque.mana){ log("Mana insuficiente."); return; }
+    personagemAtual.mana-=ataque.mana;
+    if(ataque.nome==="Cura Divina"){
+        personagemAtual.vida=Math.min(personagemAtual.vida+50,personagemAtual.vidaMax);
+        log("✨ Cura Divina restaurou HP!","log-cura");
+    } else if(ataque.nome==="Escudo Protetor"){
+        personagemAtual.escudoAtivo=true;
+        log("🛡️ Escudo Protetor ativado!","log-status");
+    } else {
+        inimigoAtual.vida-=ataque.dano;
+        log(`${personagemAtual.nome} usou ${ataque.nome} causando ${Math.round(ataque.dano)}!`,"log-ataque-jogador");
     }
-    else if(ataque.nome==="Escudo Protetor"){ 
-        personagemAtual.escudoAtivo=true; 
-        log(`${personagemAtual.nome} ativou Escudo Protetor!`, "log-status"); 
-    }
-    else { 
-        inimigoAtual.vida -= ataque.dano; 
-        log(`${personagemAtual.nome} usou ${ataque.nome} causando ${Math.round(ataque.dano)} de dano!`, "log-ataque-jogador"); 
-    }
-
     atualizarStatus();
-
-    if(inimigoAtual.vida <= 0){
-        log(`🏆 Você derrotou o ${inimigoAtual.nome}!`, "log-status");
-        personagemAtual.experiencia += 20 + inimigoAtual.nivel*5;
-        while(personagemAtual.experiencia >= personagemAtual.expParaProximoNivel()){
-            personagemAtual.experiencia -= personagemAtual.expParaProximoNivel();
+    if(inimigoAtual.vida<=0){
+        log(`🏆 ${inimigoAtual.nome} derrotado!`,"log-status");
+        personagemAtual.experiencia+=20+inimigoAtual.nivel*5;
+        while(personagemAtual.experiencia>=personagemAtual.expParaProximoNivel()){
+            personagemAtual.experiencia-=personagemAtual.expParaProximoNivel();
             personagemAtual.levelUp();
         }
+        autoSave();
         document.getElementById("batalha-finalizada").style.display="block";
         return;
     }
-
-    // Ataque inimigo
     setTimeout(()=>{
-        let dano = inimigoAtual.ataque - personagemAtual.defesa/2;
-        if(dano<1) dano=1;
-        if(personagemAtual.escudoAtivo){ dano=Math.floor(dano/2); personagemAtual.escudoAtivo=false; log("🛡️ Escudo reduziu o dano!", "log-status"); }
-        personagemAtual.vida -= dano;
-        log(`${inimigoAtual.nome} causou ${Math.round(dano)} de dano!`, "log-ataque-inimigo");
+        let dano=inimigoAtual.ataque-personagemAtual.defesa/2;
+        if(dano<1)dano=1;
+        if(personagemAtual.escudoAtivo){ dano/=2; personagemAtual.escudoAtivo=false; log("🛡️ Escudo reduziu dano!","log-status"); }
+        personagemAtual.vida-=dano;
+        log(`${inimigoAtual.nome} causou ${Math.round(dano)} de dano!`,"log-ataque-inimigo");
         atualizarStatus();
-
-        if(personagemAtual.vida <=0){
-            log(`☠️ Você foi derrotado pelo ${inimigoAtual.nome}...`, "log-status");
-            inimigoAtual = null;
-            voltarMenu();
-        }
-    }, 600);
+        if(personagemAtual.vida<=0){ log("☠️ Você foi derrotado...","log-status"); voltarMenu(); inimigoAtual=null; }
+    },600);
 }
 
 function terminarBatalha(){
-    log("✅ Batalha encerrada. Você retorna ao menu principal.", "log-status");
-    inimigoAtual = null;
-    atualizarStatus();
+    log("✅ Batalha encerrada.","log-status");
+    inimigoAtual=null;
     voltarMenu();
+    atualizarStatus();
 }
 
 function voltarMenu(){
-    document.getElementById("menu-principal").style.display="block";
+    document.getElementById("menu-principal").style.display="flex";
     document.getElementById("menu-ataques").style.display="none";
+    autoSave();
 }
 
-// ==== SAVE / LOAD ====
+// ==== SALVAMENTO ====
 function salvarJogo(){
-    if(personagens.length === 0){ log("Nenhum personagem para salvar!", "log-status"); return; }
-    const data = {
-        personagens: personagens,
-        personagemAtualIndex: personagens.indexOf(personagemAtual)
-    };
-    localStorage.setItem("rpgSave", JSON.stringify(data));
-    log("💾 Jogo salvo com sucesso!", "log-status");
+    const data={personagens,indice:personagens.indexOf(personagemAtual)};
+    localStorage.setItem("rpgSave",JSON.stringify(data));
+    log("💾 Jogo salvo!","log-status");
 }
 
 function carregarJogo(){
-    const dataStr = localStorage.getItem("rpgSave");
-    if(!dataStr){ log("Nenhum save encontrado!", "log-status"); return; }
-    const data = JSON.parse(dataStr);
-    personagens = data.personagens.map(p => {
-        const per = new Personagem(p.nome, p.classe);
-        Object.assign(per, p);
-        return per;
-    });
-    personagemAtual = personagens[data.personagemAtualIndex] || null;
-    inimigoAtual = null;
+    const s=localStorage.getItem("rpgSave");
+    if(!s)return;
+    const data=JSON.parse(s);
+    personagens=data.personagens.map(p=>Object.assign(new Personagem(p.nome,p.classe),p));
+    personagemAtual=personagens[data.indice];
     atualizarStatus();
-    log("📜 Jogo carregado com sucesso!", "log-status");
 }
+
+function autoSave(){ salvarJogo(); }
+
+function baixarSave(){
+    const data=localStorage.getItem("rpgSave");
+    const blob=new Blob([data],{type:"text/plain"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="save_rpg.txt";
+    a.click();
+}
+
+carregarJogo();
 </script>
 </body>
 </html>
