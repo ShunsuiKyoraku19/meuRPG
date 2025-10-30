@@ -3,62 +3,117 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RPG JS Completo</title>
+<title>RPG JS - Batalhas Épicas</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap');
+
 body {
-    font-family: Arial, sans-serif;
-    background-color: #222;
-    color: #eee;
+    font-family: 'MedievalSharp', cursive;
+    background: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%);
+    color: #f0e6d2;
     display: flex;
     justify-content: center;
     padding: 20px;
+    min-height: 100vh;
+    background-image: url('https://i.imgur.com/fZ8y0jx.png');
+    background-size: cover;
 }
+
 .container {
-    width: 700px;
-    background-color: #333;
+    width: 750px;
+    background: rgba(30, 30, 30, 0.95);
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 0px 10px #000;
+    border-radius: 15px;
+    border: 2px solid #d4af37;
+    box-shadow: 0px 0px 25px rgba(0, 0, 0, 0.8);
 }
+
+h1, h2 {
+    text-align: center;
+    color: #d4af37;
+    text-shadow: 2px 2px 4px #000;
+}
+
 button {
-    padding: 10px 20px;
+    padding: 10px 18px;
     margin: 5px;
     cursor: pointer;
-    border: none;
-    border-radius: 5px;
-    background-color: #555;
-    color: #eee;
+    border: 2px solid #b8860b;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #5c3c00, #3b2a00);
+    color: #f0e6d2;
+    font-weight: bold;
+    transition: 0.2s;
 }
-button:hover { background-color: #777; }
+button:hover { 
+    background: linear-gradient(180deg, #7a5400, #4a3600);
+    transform: scale(1.05);
+}
 
 #log {
     margin-top: 20px;
-    height: 200px;
+    height: 220px;
     overflow-y: auto;
-    border: 1px solid #555;
+    border: 2px solid #b8860b;
     padding: 10px;
-    background-color: #111;
-    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.4em;
 }
 
-.barra { width: 100%; height: 20px; background-color: #555; border-radius: 10px; margin-bottom: 5px; }
-.barra-preenchida { height: 100%; border-radius: 10px; transition: width 0.3s; }
+.barra { 
+    width: 100%; 
+    height: 22px; 
+    background-color: #3b2a00; 
+    border-radius: 10px; 
+    margin-bottom: 5px;
+    border: 1px solid #b8860b;
+}
+.barra-preenchida { 
+    height: 100%; 
+    border-radius: 10px; 
+    transition: width 0.4s ease-in-out;
+}
+.vida { background: linear-gradient(90deg, #8b0000, #ff0000); }
+.mana { background: linear-gradient(90deg, #00008b, #1e90ff); }
 
-.vida { background-color: #f00; }
-.mana { background-color: #00f; }
+#status-container {
+    margin-top: 20px;
+    background: rgba(20, 20, 20, 0.7);
+    border-radius: 10px;
+    padding: 10px;
+    border: 1px solid #b8860b;
+}
 
-#status-container { margin-top: 20px; }
-.personagem, .inimigo { margin-bottom: 15px; }
+.personagem, .inimigo { margin-bottom: 20px; }
 
-.log-ataque-jogador { color: #0f0; }
-.log-ataque-inimigo { color: #f90; }
-.log-cura { color: #0ff; }
-.log-status { color: #ff0; }
+.log-ataque-jogador { color: #00ff7f; }
+.log-ataque-inimigo { color: #ffa500; }
+.log-cura { color: #00ffff; }
+.log-status { color: #ffff66; }
+
+#menu-ataques button { width: 48%; }
+
+#batalha-finalizada {
+    display: none;
+    text-align: center;
+    margin-top: 15px;
+}
+#batalha-finalizada button {
+    background: linear-gradient(180deg, #006400, #004d00);
+    border-color: #228b22;
+}
+#batalha-finalizada button:hover {
+    background: linear-gradient(180deg, #008000, #005f00);
+}
+
 </style>
 </head>
 <body>
 <div class="container">
-    <h1>RPG JS Completo</h1>
+    <h1>⚔️ RPG JS - Batalhas Épicas ⚔️</h1>
+
     <div id="menu-principal">
         <button onclick="criarPersonagem()">Criar Personagem</button>
         <button onclick="selecionarPersonagem()">Selecionar Personagem</button>
@@ -72,19 +127,23 @@ button:hover { background-color: #777; }
 
     <div id="status-container">
         <div class="personagem">
-            <h2>Personagem Atual</h2>
+            <h2>👤 Personagem Atual</h2>
             <div id="personagem-status"></div>
         </div>
         <div class="inimigo">
-            <h2>Inimigo</h2>
+            <h2>👹 Inimigo</h2>
             <div id="inimigo-status"></div>
         </div>
     </div>
 
     <div id="menu-ataques" style="display:none;">
-        <h2>Escolha seu ataque</h2>
+        <h2>🗡️ Escolha seu ataque</h2>
         <div id="ataques"></div>
-        <button onclick="voltarMenu()">Voltar</button>
+        <button onclick="voltarMenu()">⬅️ Voltar</button>
+        <div id="batalha-finalizada">
+            <h3>🏆 Batalha Finalizada!</h3>
+            <button onclick="terminarBatalha()">Finalizar Batalha</button>
+        </div>
     </div>
 
     <div id="log"></div>
@@ -118,7 +177,7 @@ class Personagem {
     levelUp() { 
         this.nivel++; 
         this.pontosHabilidade+=5; 
-        log(`Parabéns! ${this.nome} subiu para nível ${this.nivel}. Ganhou 5 pontos de habilidade.`, "log-status");
+        log(`✨ Parabéns! ${this.nome} subiu para nível ${this.nivel}! +5 pontos de habilidade.`, "log-status");
     }
 }
 
@@ -138,11 +197,11 @@ class Inimigo {
 // ==== LOG ====
 function log(msg, classe="") {
     const logDiv = document.getElementById("log"); 
-    logDiv.innerHTML += `<div class="${classe}">${msg}</div>`; 
+    logDiv.innerHTML += `<div class="${classe}">> ${msg}</div>`; 
     logDiv.scrollTop = logDiv.scrollHeight; 
 }
 
-// ==== PERSONAGENS ====
+// ==== VARIÁVEIS ====
 let personagens = [];
 let personagemAtual = null;
 let inimigoAtual = null;
@@ -154,7 +213,7 @@ function atualizarStatus(){
             <b>${personagemAtual.nome} (Lv ${personagemAtual.nivel})</b><br>
             <div class="barra"><div class="barra-preenchida vida" style="width:${(personagemAtual.vida/personagemAtual.vidaMax)*100}%"></div></div>
             <div class="barra"><div class="barra-preenchida mana" style="width:${(personagemAtual.mana/personagemAtual.manaMax)*100}%"></div></div>
-            <b>Pontos de Habilidade:</b> ${personagemAtual.pontosHabilidade}
+            <b>Pontos:</b> ${personagemAtual.pontosHabilidade}
         `;
     }
     if(inimigoAtual){
@@ -171,10 +230,11 @@ function criarPersonagem(){
     const classes = ["Guerreiro","Mago","Paladino","Assassino","Tank"];
     let escolha = prompt("Escolha a classe: 1-Guerreiro 2-Mago 3-Paladino 4-Assassino 5-Tank");
     const classe = classes[parseInt(escolha)-1];
+    if(!classe) return;
     const p = new Personagem(nome,classe);
     personagens.push(p);
     personagemAtual = p;
-    log(`Personagem ${nome} (${classe}) criado!`, "log-status");
+    log(`🧙 Personagem ${nome} (${classe}) criado!`, "log-status");
     atualizarStatus();
 }
 
@@ -183,7 +243,7 @@ function selecionarPersonagem(){
     let lista = personagens.map((p,i)=>`${i+1}: ${p.nome} (${p.classe}) Lv ${p.nivel}`).join("\n");
     let escolha = prompt("Escolha o personagem:\n"+lista);
     personagemAtual = personagens[parseInt(escolha)-1];
-    log(`Personagem ${personagemAtual.nome} selecionado!`, "log-status");
+    log(`🎯 Personagem ${personagemAtual.nome} selecionado!`, "log-status");
     atualizarStatus();
 }
 
@@ -199,18 +259,19 @@ Força: ${personagemAtual.forca}
 Agilidade: ${personagemAtual.agilidade}
 Inteligência: ${personagemAtual.inteligencia}
 Defesa: ${personagemAtual.defesa}
-Experiência: ${personagemAtual.experiencia}/${personagemAtual.expParaProximoNivel()}
-Pontos de Habilidade: ${personagemAtual.pontosHabilidade}`);
+XP: ${personagemAtual.experiencia}/${personagemAtual.expParaProximoNivel()}
+Pontos: ${personagemAtual.pontosHabilidade}`);
 }
 
 function descansar(){ 
     if(!personagemAtual){ log("Nenhum personagem selecionado.", "log-status"); return; } 
     personagemAtual.vida=personagemAtual.vidaMax; 
     personagemAtual.mana=personagemAtual.manaMax; 
-    log(`${personagemAtual.nome} descansou e recuperou HP e MP.`, "log-cura"); 
+    log(`💤 ${personagemAtual.nome} descansou e recuperou HP e MP.`, "log-cura"); 
     atualizarStatus(); 
 }
 
+// ==== DISTRIBUIR PONTOS ====
 function distribuirPontos(){
     if(!personagemAtual){ log("Nenhum personagem selecionado.", "log-status"); return; }
     while(personagemAtual.pontosHabilidade>0){
@@ -233,13 +294,14 @@ function distribuirPontos(){
 function procurarInimigo(){
     if(!personagemAtual){ log("Nenhum personagem selecionado.", "log-status"); return; }
     inimigoAtual = new Inimigo(personagemAtual.nivel);
-    log(`Você encontrou um ${inimigoAtual.nome} nível ${inimigoAtual.nivel}!`, "log-status");
+    log(`⚠️ Você encontrou um ${inimigoAtual.nome} nível ${inimigoAtual.nivel}!`, "log-status");
     menuAtaques();
 }
 
 function menuAtaques(){
     document.getElementById("menu-principal").style.display="none";
     document.getElementById("menu-ataques").style.display="block";
+    document.getElementById("batalha-finalizada").style.display="none";
     const ataquesDiv=document.getElementById("ataques");
     ataquesDiv.innerHTML="";
 
@@ -268,11 +330,11 @@ function realizarAtaque(ataque){
     if(ataque.nome==="Cura Divina"){ 
         personagemAtual.vida+=50; 
         if(personagemAtual.vida>personagemAtual.vidaMax) personagemAtual.vida=personagemAtual.vidaMax; 
-        log(`${personagemAtual.nome} usou Cura Divina.`, "log-cura"); 
+        log(`${personagemAtual.nome} conjurou Cura Divina.`, "log-cura"); 
     }
     else if(ataque.nome==="Escudo Protetor"){ 
         personagemAtual.escudoAtivo=true; 
-        log(`${personagemAtual.nome} ativou Escudo Protetor.`, "log-status"); 
+        log(`${personagemAtual.nome} ativou Escudo Protetor!`, "log-status"); 
     }
     else { 
         inimigoAtual.vida -= ataque.dano; 
@@ -282,14 +344,13 @@ function realizarAtaque(ataque){
     atualizarStatus();
 
     if(inimigoAtual.vida <= 0){
-        log(`Você derrotou o ${inimigoAtual.nome}!`, "log-status");
+        log(`🏆 Você derrotou o ${inimigoAtual.nome}!`, "log-status");
         personagemAtual.experiencia += 20 + inimigoAtual.nivel*5;
         while(personagemAtual.experiencia >= personagemAtual.expParaProximoNivel()){
             personagemAtual.experiencia -= personagemAtual.expParaProximoNivel();
             personagemAtual.levelUp();
         }
-        inimigoAtual = null;
-        voltarMenu();
+        document.getElementById("batalha-finalizada").style.display="block";
         return;
     }
 
@@ -297,17 +358,24 @@ function realizarAtaque(ataque){
     setTimeout(()=>{
         let dano = inimigoAtual.ataque - personagemAtual.defesa/2;
         if(dano<1) dano=1;
-        if(personagemAtual.escudoAtivo){ dano=Math.floor(dano/2); personagemAtual.escudoAtivo=false; log("Escudo reduziu o dano!", "log-status"); }
+        if(personagemAtual.escudoAtivo){ dano=Math.floor(dano/2); personagemAtual.escudoAtivo=false; log("🛡️ Escudo reduziu o dano!", "log-status"); }
         personagemAtual.vida -= dano;
         log(`${inimigoAtual.nome} causou ${Math.round(dano)} de dano!`, "log-ataque-inimigo");
         atualizarStatus();
 
         if(personagemAtual.vida <=0){
-            log(`Você foi derrotado pelo ${inimigoAtual.nome}...`, "log-status");
+            log(`☠️ Você foi derrotado pelo ${inimigoAtual.nome}...`, "log-status");
             inimigoAtual = null;
             voltarMenu();
         }
-    }, 500);
+    }, 600);
+}
+
+function terminarBatalha(){
+    log("✅ Batalha encerrada. Você retorna ao menu principal.", "log-status");
+    inimigoAtual = null;
+    atualizarStatus();
+    voltarMenu();
 }
 
 function voltarMenu(){
@@ -323,7 +391,7 @@ function salvarJogo(){
         personagemAtualIndex: personagens.indexOf(personagemAtual)
     };
     localStorage.setItem("rpgSave", JSON.stringify(data));
-    log("Jogo salvo com sucesso!", "log-status");
+    log("💾 Jogo salvo com sucesso!", "log-status");
 }
 
 function carregarJogo(){
@@ -332,24 +400,13 @@ function carregarJogo(){
     const data = JSON.parse(dataStr);
     personagens = data.personagens.map(p => {
         const per = new Personagem(p.nome, p.classe);
-        per.nivel = p.nivel;
-        per.experiencia = p.experiencia;
-        per.pontosHabilidade = p.pontosHabilidade;
-        per.vidaMax = p.vidaMax;
-        per.manaMax = p.manaMax;
-        per.forca = p.forca;
-        per.agilidade = p.agilidade;
-        per.inteligencia = p.inteligencia;
-        per.defesa = p.defesa;
-        per.vida = p.vida;
-        per.mana = p.mana;
-        per.escudoAtivo = p.escudoAtivo;
+        Object.assign(per, p);
         return per;
     });
     personagemAtual = personagens[data.personagemAtualIndex] || null;
     inimigoAtual = null;
     atualizarStatus();
-    log("Jogo carregado com sucesso!", "log-status");
+    log("📜 Jogo carregado com sucesso!", "log-status");
 }
 </script>
 </body>
